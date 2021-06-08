@@ -75,6 +75,8 @@ static NTSTATUS write_to_process(PEPROCESS target_process, PVOID target_address,
 
     NTSTATUS status = STATUS_SUCCESS;
     KAPC_STATE state;
+  
+    KeStackAttachProcess(target_process, &state);
 
     __try
     {
