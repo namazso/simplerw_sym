@@ -73,27 +73,21 @@ static NTSTATUS write_to_process(PEPROCESS target_process, PVOID target_address,
   if (intptr_t(target_address) <= 0)
     return STATUS_ACCESS_DENIED;
 
-  NTSTATUS status = STATUS_SUCCESS;
-  KAPC_STATE state;
+    NTSTATUS status = STATUS_SUCCESS;
+    KAPC_STATE state;
 
-  const auto is_current_process = target_process == PsGetCurrentProcess();
+    __try
+    {
+      memcpy(target_address, source_address, size);
+    }
+    __except (EXCEPTION_EXECUTE_HANDLER)
+    {
+      status = STATUS_ACCESS_VIOLATION;
+    }
 
-  if(!is_current_process)
-    KeStackAttachProcess(target_process, &state);
-
-  __try
-  {
-    memcpy(target_address, source_address, size);
-  }
-  __except (EXCEPTION_EXECUTE_HANDLER)
-  {
-    status = STATUS_ACCESS_VIOLATION;
-  }
-
-  if (!is_current_process)
     KeUnstackDetachProcess(&state);
 
-  return status;
+    return status;
 }
 
 static uint64_t g_magic = k_magic_initial;
