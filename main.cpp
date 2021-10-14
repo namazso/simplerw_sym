@@ -76,10 +76,7 @@ static NTSTATUS write_to_process(PEPROCESS target_process, PVOID target_address,
   NTSTATUS status = STATUS_SUCCESS;
   KAPC_STATE state;
 
-  const auto is_current_process = target_process == PsGetCurrentProcess();
-
-  if(!is_current_process)
-    KeStackAttachProcess(target_process, &state);
+  KeStackAttachProcess(target_process, &state);
 
   __try
   {
@@ -90,8 +87,7 @@ static NTSTATUS write_to_process(PEPROCESS target_process, PVOID target_address,
     status = STATUS_ACCESS_VIOLATION;
   }
 
-  if (!is_current_process)
-    KeUnstackDetachProcess(&state);
+  KeUnstackDetachProcess(&state);
 
   return status;
 }
